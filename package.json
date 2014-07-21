@@ -1,0 +1,23 @@
+{
+	"name": "SyncStorage",
+    "description": "Automagic data binding between the client and server.",
+	"version": "0.0.1",
+    "license": "MIT",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/mongus/SyncStorage.git"
+    },
+    "author": {
+        "name": "Aaron Porter",
+        "email": "aaron@mongus.com",
+        "url": "http://mongus.com/"
+    },
+	"dependencies": {
+		"sockjs": "*",
+		"rbytes": "*",
+        "mysql": "*",
+        "combined-stream": "*",
+        "redis": "*"
+	}
+}
