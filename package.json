@@ -16,7 +16,6 @@
 		"dependencies": {
 			"sockjs": "*",
 			"rbytes": "*",
-			"mysql": "*",
 			"combined-stream": "*",
 			"redis": "*"
 		}
