@@ -15,8 +15,6 @@
 		},
 		"dependencies": {
 			"sockjs": "*",
-			"rbytes": "*",
-			"combined-stream": "*",
 			"redis": "*"
 		}
 }

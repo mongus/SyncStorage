@@ -1,14 +1,23 @@
 'use strict';
 
 var http = require('http');
-var fileSystem = require('fs');
+var fs = require('fs');
 
 var sockjs = require('sockjs');
 var redis = require('redis');
 
-var CombinedStream = require('combined-stream');
-
 exports.CSV = require('./lib/sync-storage-csv.js').SyncStorageCsv;
+
+function streamConcat(file, output, callback) {
+    var input = fs.createReadStream(file);
+
+    if (typeof(callback) === 'function') {
+        input.on('end', callback);
+        input.pipe(output, {end: false});
+    }
+    else
+        input.pipe(output);
+}
 
 exports.create = function(options) {
     var sjsServer = sockjs.createServer();
@@ -106,13 +115,11 @@ exports.create = function(options) {
         switch (path) {
             case 'sync-storage.js':
                 response.setHeader('content-type', 'text/javascript');
-                var stream = CombinedStream.create();
 
-                stream.append(fileSystem.createReadStream(__dirname + '/lib/sync-storage.js'));
-                stream.append(fileSystem.createReadStream(__dirname + '/lib/sync-storage-csv.js'));
-                stream.append(fileSystem.createReadStream(__dirname + '/lib/polyfills.js'));
+                streamConcat(__dirname + '/lib/sync-storage.js', response, function() {
+                    streamConcat(__dirname + '/lib/sync-storage-csv.js', response, function() {
+                        streamConcat(__dirname + '/lib/polyfills.js', response); }); });
 
-                stream.pipe(response);
                 break;
         }
     });
