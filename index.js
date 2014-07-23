@@ -29,15 +29,15 @@ exports.create = function(options) {
         var subscriber = redis.createClient();
 
         var instance = {
+            socket: socket,
             send: function(key, message) {
                 socket.write(packet(key, message));
-
             },
             broadcast: function(key, message) {
                 redisClient.publish(key, packet(key, message));
             },
             sendError: function(error) {
-                instance.send('_error', null, JSON.stringify(error));
+                socket.write('error\n' + JSON.stringify(error));
             }
         };
 
@@ -56,8 +56,6 @@ exports.create = function(options) {
             var data = JSON.parse(payload);
 
             if (data.cmd) {
-                var response = null;
-
                 if (data.key)
                     subscriber.subscribe(data.key);
 
