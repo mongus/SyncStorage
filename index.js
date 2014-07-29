@@ -30,8 +30,8 @@ exports.create = function(options) {
 
         var instance = {
             socket: socket,
-            send: function(key, message) {
-                socket.write(packet(key, message));
+            send: function(key, message, readOnly) {
+                socket.write(packet(key, message, readOnly));
             },
             broadcast: function(key, message) {
                 redisClient.publish(key, packet(key, message));
@@ -41,11 +41,11 @@ exports.create = function(options) {
             }
         };
 
-        var packet = function(key, message) {
+        var packet = function(key, message, readOnly) {
             if (typeof(message) !== 'string')
                 message = JSON.stringify(message);
 
-            return 'data:' + key + '\n' + message;
+            return (readOnly ? 'r' : 'rw') + ':' + key + '\n' + message;
         };
 
         subscriber.on('message', function(key, message) {
