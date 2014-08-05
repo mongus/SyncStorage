@@ -36,7 +36,13 @@ exports.create = function(options) {
                 socket.write(packet(key, message, readOnly));
             },
             broadcast: function(key, message) {
-                redisClient.publish(key, packet(key, message));
+                var target = key;
+                do {
+                    redisClient.publish(target, packet(key, message));
+                    if (target.indexOf(':') === -1)
+                        break;
+                    target = target.replace(/:[^:]*$/, '');
+                } while (true);
             },
             sendError: function(error) {
                 socket.write('error\n' + JSON.stringify(error));
