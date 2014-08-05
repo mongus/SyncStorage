@@ -30,6 +30,8 @@ exports.create = function(options) {
 
         var instance = {
             socket: socket,
+            subscriber: subscriber,
+            publisher: redisClient,
             send: function(key, message, readOnly) {
                 socket.write(packet(key, message, readOnly));
             },
