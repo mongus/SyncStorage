@@ -133,4 +133,10 @@ exports.create = function(options) {
     sjsServer.installHandlers(server, {prefix: options.endoint || '/sync-storage'});
 
     server.listen(options.port || 6580, options.address || '0.0.0.0');
+
+    return {
+        server: server,
+        sockJsServer: sjsServer,
+        options: options
+    }
 };
