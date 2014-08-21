@@ -116,11 +116,6 @@ exports.create = function(options) {
     });
 
     var server = http.createServer(function(request, response) {
-        if (typeof(options.httpHandler) === 'function') {
-            if (options.httpHandler(request, response))
-                return;
-        }
-
         var path = request.url.substring(1);
 
         switch (path) {
@@ -131,6 +126,12 @@ exports.create = function(options) {
                     streamConcat(__dirname + '/lib/sync-storage-csv.js', response, function() {
                         streamConcat(__dirname + '/lib/polyfills.js', response); }); });
 
+                break;
+            default:
+                if (typeof(options.httpHandler) === 'function') {
+                    if (options.httpHandler(request, response))
+                        return;
+                }
                 break;
         }
     });
