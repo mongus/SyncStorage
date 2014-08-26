@@ -138,7 +138,7 @@ exports.create = function(options) {
 
     sjsServer.installHandlers(server, {prefix: options.endoint || '/sync-storage'});
 
-    server.listen(options.port || 993, options.address || '0.0.0.0');
+    server.listen(options.port || 8080, options.address || '0.0.0.0');
 
     return {
         server: server,
