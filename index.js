@@ -35,10 +35,10 @@ exports.create = function(options) {
             send: function(key, message, readOnly) {
                 socket.write(packet(key, message, readOnly));
             },
-            broadcast: function(key, message) {
+            broadcast: function(key, message, readOnly) {
                 var target = key;
                 do {
-                    redisClient.publish(target, packet(key, message));
+                    redisClient.publish(target, packet(key, message, readOnly));
                     if (target.indexOf(':') === -1)
                         break;
                     target = target.replace(/:[^:]*$/, '');
