@@ -32,28 +32,34 @@ exports.create = function(options) {
             socket: socket,
             subscriber: subscriber,
             publisher: redisClient,
-            send: function(key, message, readOnly) {
-                socket.write(packet(key, message, readOnly));
+            send: function(data, message, readOnly) {
+                socket.write(packet(data, message, readOnly));
             },
-            broadcast: function(key, message, readOnly) {
-                var target = key;
+            broadcast: function(data, message, readOnly) {
+                var target = data.key || data;
                 do {
-                    redisClient.publish(target, packet(key, message, readOnly));
+                    redisClient.publish(target, packet(data.key, message, readOnly));
                     if (target.indexOf(':') === -1)
                         break;
                     target = target.replace(/:[^:]*$/, '');
                 } while (true);
             },
-            sendError: function(error) {
-                socket.write('error\n' + JSON.stringify(error));
+            sendError: function(error, data) {
+                var packetId = data && data.id ? ('@'+data.id) : '';
+                socket.write('error'+packetId+'\n' + JSON.stringify(error));
             }
         };
 
-        var packet = function(key, message, readOnly) {
+        var packet = function(data, message, readOnly) {
             if (typeof(message) !== 'string')
                 message = JSON.stringify(message);
 
-            return (readOnly ? 'r' : 'rw') + ':' + key + '\n' + message;
+            var id = data.key || data;
+
+            if (data.id)
+                id += '@'+data.id;
+
+            return (readOnly ? 'r' : 'rw') + ':' + id + '\n' + message;
         };
 
         subscriber.on('message', function(key, message) {
