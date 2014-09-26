@@ -36,6 +36,8 @@ exports.create = function(options) {
                 socket.write(packet(data, message, readOnly));
             },
             broadcast: function(data, message, readOnly) {
+                instance.send(data, message, readOnly);
+
                 var target = data.key || data;
                 do {
                     redisClient.publish(target, packet(data.key, message, readOnly));
