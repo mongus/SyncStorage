@@ -39,8 +39,10 @@ exports.create = function(options) {
                 instance.send(data, message, readOnly);
 
                 var target = data.key || data;
+                var key = target;
+
                 do {
-                    redisClient.publish(target, packet(data.key, message, readOnly));
+                    redisClient.publish(target, packet(key, message, readOnly));
                     if (target.indexOf(':') === -1)
                         break;
                     target = target.replace(/:[^:]*$/, '');
@@ -113,7 +115,7 @@ exports.create = function(options) {
                 console.log('unrecognized data: ', data);
 
             if (data.id !== null && typeof(data.id) !== 'undefined')
-                socket.write('ack:' + data.id);
+                socket.write('ack@' + data.id);
         });
 
         socket.on('close', function() {
