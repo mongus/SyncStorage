@@ -32,6 +32,7 @@ exports.create = function(options) {
             socket: socket,
             subscriber: subscriber,
             publisher: redisClient,
+            broadcastPrefix: '',
             send: function(data, message, readOnly) {
                 socket.write(packet(data, message, readOnly));
             },
@@ -39,10 +40,10 @@ exports.create = function(options) {
                 instance.send(data, message, readOnly);
 
                 var target = data.key || data;
-                var key = target;
 
                 do {
-                    redisClient.publish(target, packet(key, message, readOnly));
+                    var channel = instance.broadcastPrefix + target;
+                    redisClient.publish(channel, packet(target, message, readOnly));
                     if (target.indexOf(':') === -1)
                         break;
                     target = target.replace(/:[^:]*$/, '');
@@ -74,8 +75,10 @@ exports.create = function(options) {
             var data = JSON.parse(payload);
 
             if (data.cmd) {
-                if (data.key)
-                    subscriber.subscribe(data.key);
+                if (data.key) {
+                    var channel = instance.broadcastPrefix + data.key;
+                    subscriber.subscribe(channel);
+                }
 
                 // check for a command override
                 if (!options[data.cmd] || !options[data.cmd](instance, data)) {
