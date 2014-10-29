@@ -39,12 +39,14 @@ exports.create = function(options) {
             broadcast: function(data, message, readOnly) {
                 instance.send(data, message, readOnly);
 
-                var target = data.key || data;
+                var key = data.key || data;
+
+                var target = key;
 
                 do {
                     var channel = instance.broadcastPrefix + target;
 
-                    redisClient.publish(channel, packet(target, message, readOnly));
+                    redisClient.publish(channel, packet(key, message, readOnly));
 
                     if (target.indexOf(':') === -1)
                         break;
