@@ -20,7 +20,7 @@ function streamConcat(file, output, callback) {
 }
 
 exports.create = function(options) {
-    var sjsServer = sockjs.createServer();
+    var sjsServer = sockjs.createServer(options.sockjsOptions);
 
     sjsServer.on('connection', function(socket) {
         console.log('connection established with ' + socket.remoteAddress);
