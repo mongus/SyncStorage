@@ -33,11 +33,11 @@ exports.create = function(options) {
             subscriber: subscriber,
             publisher: redisClient,
             broadcastPrefix: '',
-            send: function(data, message, readOnly) {
-                socket.write(packet(data, message, readOnly));
+            send: function(data, message, type) {
+                socket.write(packet(data, message, type));
             },
-            broadcast: function(data, message, readOnly) {
-                instance.send(data, message, readOnly);
+            broadcast: function(data, message, type) {
+                instance.send(data, message, type);
 
                 var key = data.key || data;
 
@@ -46,7 +46,7 @@ exports.create = function(options) {
                 do {
                     var channel = instance.broadcastPrefix + target;
 
-                    redisClient.publish(channel, packet(key, message, readOnly));
+                    redisClient.publish(channel, packet(key, message, type));
 
                     if (target.indexOf(':') === -1)
                         break;
@@ -60,7 +60,7 @@ exports.create = function(options) {
             }
         };
 
-        var packet = function(data, message, readOnly) {
+        var packet = function(data, message, type) {
             if (typeof(message) !== 'string')
                 message = JSON.stringify(message);
 
@@ -69,7 +69,10 @@ exports.create = function(options) {
             if (data.id)
                 id += '@'+data.id;
 
-            return (readOnly ? 'r' : 'rw') + ':' + id + '\n' + message;
+            if (typeof(type) !== 'string')
+                type = type ? 'r' : 'rw';
+
+            return type + ':' + id + '\n' + message;
         };
 
         subscriber.on('message', function(key, message) {
