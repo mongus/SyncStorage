@@ -79,20 +79,31 @@ exports.create = function(options) {
             socket.write(message);
         });
 
-        var subscriptions = [];
+        var subscriptions = {};
 
         socket.on('data', function(payload) {
             var data = JSON.parse(payload);
 
             if (data.cmd) {
                 if (data.key) {
-                    var type = data.key.replace(/:.*/, '');
-                    if (subscriptions.indexOf(type) === -1 && subscriptions.indexOf(data.key) === -1) {
-                        subscriptions.push(data.key);
+                    var parts = data.key.match(/([^:]*)(?:[:](.*))?/);
+                    var type = parts[1];
 
-                        var channel = instance.broadcastPrefix + data.key;
+                    // if we're already subscribed to everything for the type we can skip the rest of this
+                    if (!subscriptions[type]) {
+                        var ids = (parts[2] || '').split(',');
 
-                        subscriber.subscribe(channel);
+                        ids.forEach(function (id) {
+                            var key = type + (id ? ':' + id : '');
+
+                            if (!subscriptions[key]) {
+                                subscriptions[key] = true;
+
+                                var channel = instance.broadcastPrefix + key;
+
+                                subscriber.subscribe(channel);
+                            }
+                        });
                     }
                 }
 
