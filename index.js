@@ -75,11 +75,19 @@ exports.create = function(options) {
             return type + ':' + id + '\n' + message;
         };
 
-        subscriber.on('message', function(key, message) {
-            socket.write(message);
+        var subscriptions = {};
+
+        subscriber.on('pmessage', function(pattern, channel, message) {
+            if (channel.length < instance.broadcastPrefix.length)
+                return;
+
+            var key = channel.substring(instance.broadcastPrefix.length);
+
+            if (subscriptions[key] || subscriptions[key.replace(/:.*/, '')])
+                socket.write(message);
         });
 
-        var subscriptions = {};
+        var subscribed = false;
 
         socket.on('data', function(payload) {
             var data = JSON.parse(payload);
@@ -95,15 +103,16 @@ exports.create = function(options) {
 
                         ids.forEach(function (id) {
                             var key = type + (id ? ':' + id : '');
-
-                            if (!subscriptions[key]) {
-                                subscriptions[key] = true;
-
-                                var channel = instance.broadcastPrefix + key;
-
-                                subscriber.subscribe(channel);
-                            }
+                            subscriptions[key] = true;
                         });
+                    }
+
+                    if (!subscribed && instance.broadcastPrefix) {
+                        var channel = instance.broadcastPrefix;
+                        subscriber.psubscribe(channel + '*');
+                        // can't find a way to list pattern subscriptions so we'll subscribe to the channel too
+                        subscriber.subscribe(channel);
+                        subscribed = true;
                     }
                 }
 
@@ -129,12 +138,12 @@ exports.create = function(options) {
                                     return;
 
                                 redisClient.set(data.key, value);
-                                instance.broadcast(data.key, value);
+                                instance.broadcast(instance.broadcastPrefix + data.key, value);
                             });
                             break;
                         case 'delete':
                             redisClient.del(data.key);
-                            instance.broadcast(data.key, '');
+                            instance.broadcast(instance.broadcastPrefix + data.key, '');
                             break;
                         default:
                             console.log('unrecognized cmd: ', data.cmd);
